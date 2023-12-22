@@ -16,7 +16,7 @@ fi
 echo "Running the Second-Stage Bootloader..."
 
 # Run the second-stage bootloader in QEMU
-qemu-system-x86_64 -fda second_stage.bin
+qemu-system-x86_64 -fda second_stage.bin -serial stdio
 
 echo "Second-stage bootloader execution completed."
 

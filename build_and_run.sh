@@ -14,7 +14,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Define the bootloader binary name
-BOOTLOADER_BIN=nexos_bootloader.bin
+BOOTLOADER_BIN=build/nexos_bootloader.bin
 
 # Check if the bootloader binary exists
 if [ ! -f $BOOTLOADER_BIN ]; then
@@ -22,22 +22,10 @@ if [ ! -f $BOOTLOADER_BIN ]; then
     exit 1
 fi
 
-echo "Creating bootable image..."
-
-# Create a bootable image with 'dd'
-dd if=/dev/zero of=bootloader.img bs=512 count=2880  # Create a 1.44 MB floppy image
-dd if=$BOOTLOADER_BIN of=bootloader.img conv=notrunc
-
-# Check if dd was successful
-if [ $? -ne 0 ]; then
-    echo "Failed to create bootable image, aborting."
-    exit 1
-fi
-
 echo "Booting with QEMU..."
 
 # Run the image in QEMU
-qemu-system-x86_64 -fda bootloader.img
+qemu-system-x86_64 -fda build/bootloader.img -serial stdio
 
 echo "Boot process completed."
 
