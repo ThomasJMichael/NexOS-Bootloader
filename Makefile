@@ -1,40 +1,33 @@
-# Makefile for assembling NexOS Bootloader
+ASM=nasm
+CC=gcc
+CC16=/usr/bin/watcom/bin1/wcc
+LD16=/usr/bin/watcom/bin1/wlink
 
-# First-stage bootloader source file
-FIRST_STAGE_SRC=bootloader.asm
+SRC_DIR=src
+BUILD_DIR=build
 
-# Second-stage bootloader source file
-SECOND_STAGE_SRC=second_stage.asm
+BOOTLOADER = bootloader
+FIRST_STAGE_NAME = first_stage
+FIRST_STAGE_DIR = $(SRC_DIR)/$(FIRST_STAGE_NAME)
+FIRST_STAGE_BIN = $(BUILD_DIR)/$(FIRST_STAGE_NAME).bin
 
-# Output directory for binary files
-BUILD_DIR = build
-
-# Output filenames
-FIRST_STAGE_BIN = $(BUILD_DIR)/bootloader.bin
-SECOND_STAGE_BIN = $(BUILD_DIR)/second_stage.bin
-COMBINED_BIN = $(BUILD_DIR)/nexos_bootloader.bin
-FAT12_IMG = $(BUILD_DIR)/bootloader.img
+STAGE_TWO_NAME = second_stage
+STAGE_TWO_DIR = $(SRC_DIR)/$(STAGE_TWO_NAME)
+STAGE_TWO_BIN = $(BUILD_DIR)/$(STAGE_TWO_NAME).bin
 
 $(shell mkdir -p $(BUILD_DIR))
 
-all: $(FAT12_IMG)
+all: $(BOOTLOADER)
 
-$(FIRST_STAGE_BIN): $(FIRST_STAGE_SRC)
-	nasm -f bin -o $(FIRST_STAGE_BIN) $(FIRST_STAGE_SRC)
+$(BOOTLOADER): $(FIRST_STAGE_BIN) $(STAGE_TWO_BIN)
 
-$(SECOND_STAGE_BIN): $(SECOND_STAGE_SRC)
-	nasm -f bin -o $(SECOND_STAGE_BIN) $(SECOND_STAGE_SRC)
+$(FIRST_STAGE_BIN):
+	$(MAKE) -C $(FIRST_STAGE_DIR) BUILD_DIR=$(abspath $(BUILD_DIR))
 
-$(COMBINED_BIN): $(FIRST_STAGE_BIN) $(SECOND_STAGE_BIN)
-	cat $(FIRST_STAGE_BIN) $(SECOND_STAGE_BIN) > $(COMBINED_BIN)
-
-$(FAT12_IMG): $(COMBINED_BIN)
-	# FAT12 Filesystem
-	mkfs.fat -F 12 -C $(FAT12_IMG) 2880 # 1.44 MB floppy disk format
-	dd if=$(COMBINED_BIN) of=$(FAT12_IMG) bs=512 count=1 conv=notrunc
-
-.PHONY: clean
+$(STAGE_TWO_BIN):
+	$(MAKE) -C $(STAGE_TWO_DIR) BUILD_DIR=$(abspath $(BUILD_DIR))
 
 clean:
-	rm -rf $(BUILD_DIR)/
-
+	$(MAKE) -C $(FIRST_STAGE_DIR) BUILD_DIR=$(abspath $(BUILD_DIR)) clean
+	$(MAKE) -C $(STAGE_TWO_DIR) BUILD_DIR=$(abspath $(BUILD_DIR)) clean
+	rm -rf $(BUILD_DIR)/*

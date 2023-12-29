@@ -1,0 +1,20 @@
+BUILD_DIR?=build
+ASM?=nasm
+
+SECOND_STAGE_NAME = second_stage
+SECOND_STAGE_SRC = $(SECOND_STAGE_NAME).asm
+SECOND_STAGE_BIN = $(BUILD_DIR)/$(SECOND_STAGE_NAME).bin
+
+$(shell mkdir -p $(BUILD_DIR))
+
+all: $(SECOND_STAGE_NAME)
+
+$(SECOND_STAGE_NAME): $(SECOND_STAGE_BIN)
+
+$(SECOND_STAGE_BIN):
+	$(ASM) $(SECOND_STAGE_SRC) -f bin -o $(SECOND_STAGE_BIN)
+
+clean:
+	rm -f $(SECOND_STAGE_BIN)
+
+.PHONY: all clean $(SECOND_STAGE_NAME)
